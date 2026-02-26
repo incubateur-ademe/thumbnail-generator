@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import type { Preset } from "@/data/presets";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -84,7 +85,19 @@ export function PresetSection({ presets, onApply, onReset, buildPresetValues }: 
 
       {generatedPreset && (
         <div className="mt-2">
-          <h2 className="text-base font-semibold mb-2">Preset généré</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-base font-semibold">Preset généré</h2>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6"
+              onClick={() => setGeneratedPreset("")}
+              title="Fermer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          </div>
           <div className="relative">
             <Textarea
               ref={textareaRef}

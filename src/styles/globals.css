@@ -93,3 +93,34 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Scrollbar — fine, thémée, auto-masquée */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  *:hover {
+    scrollbar-color: var(--muted-foreground) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 9999px;
+    transition: background 0.2s;
+  }
+  *:hover::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    opacity: 0.5;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
+    opacity: 0.7;
+  }
+}

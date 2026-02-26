@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { MoonIcon, SunIcon } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { GripVertical, MoonIcon, SunIcon } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { Textarea } from "./components/ui/textarea";
 import { LogoSection } from "./components/LogoSection";
@@ -12,6 +12,39 @@ export function App() {
   const { state, presets, actions } = useThumbnailState();
   const previewRef = useRef<HTMLDivElement>(null);
   const [svgCode, setSvgCode] = useState("");
+  const [svgExpanded, setSvgExpanded] = useState(false);
+  const [asideWidth, setAsideWidth] = useState(600);
+  const isDragging = useRef(false);
+  const dragStartX = useRef(0);
+  const dragStartWidth = useRef(0);
+
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    isDragging.current = true;
+    dragStartX.current = e.clientX;
+    dragStartWidth.current = asideWidth;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }, [asideWidth]);
+
+  useEffect(() => {
+    function onMouseMove(e: MouseEvent) {
+      if (!isDragging.current) return;
+      const delta = e.clientX - dragStartX.current;
+      setAsideWidth(Math.min(800, Math.max(400, dragStartWidth.current + delta)));
+    }
+    function onMouseUp() {
+      if (!isDragging.current) return;
+      isDragging.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    }
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+  }, []);
   const [dark, setDark] = useState(
     () =>
       localStorage.getItem("theme") === "dark" ||
@@ -75,7 +108,10 @@ export function App() {
       </header>
 
       <div className="flex gap-6 p-6 flex-1 items-start">
-        <aside className="w-[400px] shrink-0 flex flex-col gap-6 overflow-y-auto max-h-[calc(100vh-80px)] sticky top-[80px]">
+        <aside
+          style={{ width: asideWidth }}
+          className="shrink-0 flex flex-col gap-6 overflow-y-auto max-h-[calc(100vh-80px)] sticky top-[80px]"
+        >
           <PresetSection
             presets={presets}
             onApply={actions.applyPreset}
@@ -123,6 +159,16 @@ export function App() {
           />
         </aside>
 
+        {/* Handle de redimensionnement */}
+        <div
+          onMouseDown={handleResizeStart}
+          className="self-stretch w-4 shrink-0 cursor-col-resize"
+        >
+          <div className="sticky top-[calc(50vh-0.75rem)] flex justify-center">
+            <GripVertical className="w-3 h-6 text-muted-foreground/40 hover:text-primary/70 transition-colors" />
+          </div>
+        </div>
+
         <main className="flex-1 flex flex-col items-center gap-4">
           <div className="border rounded-lg overflow-hidden w-full" ref={previewRef}>
             <SvgCanvas state={state} />
@@ -131,10 +177,20 @@ export function App() {
             Télécharger en PNG
           </Button>
           <div className="w-full">
-            <h2 className="text-base font-semibold mb-2">Code SVG</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-base font-semibold">Code SVG</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs h-6 px-2"
+                onClick={() => setSvgExpanded((v) => !v)}
+              >
+                {svgExpanded ? "Voir moins" : "Voir plus"}
+              </Button>
+            </div>
             <Textarea
               readOnly
-              className="font-mono text-xs min-h-32"
+              className={`font-mono text-xs resize-none overflow-y-auto transition-all duration-200 ${svgExpanded ? "max-h-96" : "max-h-24"}`}
               value={svgCode}
             />
           </div>
