@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+
+# Build
+dist
+dist-ssr
+
+# Env files
+.env
+.env.local
+*.local
+
+# Vite cache
+.vite
+
+# TypeScript incremental build
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage
+
+# Claude / AI tools
+.playwright-mcp
+CLAUDE.local.md
+.claude/settings.local.json
