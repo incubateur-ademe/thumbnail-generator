@@ -25,7 +25,7 @@ export function SvgCanvas({ state }: Props) {
     let cancelled = false;
     Promise.all(
       toFetch.map(async (e) => {
-        const res = await fetch(e.srcUrl!);
+        const res = await fetch(`${import.meta.env.BASE_URL}${e.srcUrl!.replace(/^\//, "")}`);
         const text = await res.text();
         return [e.srcUrl!, extractSvgInner(text)] as const;
       }),
