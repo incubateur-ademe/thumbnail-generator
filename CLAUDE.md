@@ -7,7 +7,7 @@
 ## Tooling & environment
 - `pnpm` is the package manager; lock file is `pnpm-lock.yaml`
 - Node 24 required (`engines` in package.json)
-- Vite base path: `/thumbail-generator/` — toutes les URLs publiques doivent en tenir compte
+- Vite base path: `/thumbnail-generator/` — toutes les URLs publiques doivent en tenir compte
 
 ## Stack UI
 - **Tailwind CSS v4** (CSS-first) via plugin `@tailwindcss/vite` — pas de `tailwind.config.js`
@@ -18,7 +18,7 @@
 ## Architecture clé
 - `src/hooks/useThumbnailState.ts` — source de vérité unique pour l'état du thumbnail (titre, sous-titre, date, logos)
 - `src/data/presets.ts` — presets statiques ; `PresetValues` utilise des `string` pour les numériques (format de sérialisation JSON)
-- `src/components/SvgCanvas.tsx` — rendu SVG 1280×720 avec polices Marianne/Spectral embarquées en `@font-face` inline. Les URLs de polices sont absolues : `/thumbail-generator/fonts/...`
+- `src/components/SvgCanvas.tsx` — rendu SVG 1280×720 avec polices Marianne/Spectral embarquées en `@font-face` inline. Les URLs de polices sont absolues : `/thumbnail-generator/fonts/...`
 - `src/lib/{dateUtils,svgUtils,utils}.ts` — utilitaires partagés, tous utilisés
 
 ## Commandes utiles

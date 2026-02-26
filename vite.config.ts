@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "/thumbail-generator/",
+  base: "/thumbnail-generator/",
   plugins: [tailwindcss(), react()],
   resolve: {
     alias: {

@@ -150,32 +150,32 @@ export function SvgCanvas({ state }: Props) {
         <style>{`
           @font-face {
             font-family: 'Marianne';
-            src: url('/thumbail-generator/fonts/Marianne-Light.woff2') format('woff2'),
-                 url('/thumbail-generator/fonts/Marianne-Light.woff') format('woff');
+            src: url('/thumbnail-generator/fonts/Marianne-Light.woff2') format('woff2'),
+                 url('/thumbnail-generator/fonts/Marianne-Light.woff') format('woff');
             font-weight: 300;
           }
           @font-face {
             font-family: 'Marianne';
-            src: url('/thumbail-generator/fonts/Marianne-Regular.woff2') format('woff2'),
-                 url('/thumbail-generator/fonts/Marianne-Regular.woff') format('woff');
+            src: url('/thumbnail-generator/fonts/Marianne-Regular.woff2') format('woff2'),
+                 url('/thumbnail-generator/fonts/Marianne-Regular.woff') format('woff');
             font-weight: 400;
           }
           @font-face {
             font-family: 'Marianne';
-            src: url('/thumbail-generator/fonts/Marianne-Medium.woff2') format('woff2'),
-                 url('/thumbail-generator/fonts/Marianne-Medium.woff') format('woff');
+            src: url('/thumbnail-generator/fonts/Marianne-Medium.woff2') format('woff2'),
+                 url('/thumbnail-generator/fonts/Marianne-Medium.woff') format('woff');
             font-weight: 500;
           }
           @font-face {
             font-family: 'Marianne';
-            src: url('/thumbail-generator/fonts/Marianne-Bold.woff2') format('woff2'),
-                 url('/thumbail-generator/fonts/Marianne-Bold.woff') format('woff');
+            src: url('/thumbnail-generator/fonts/Marianne-Bold.woff2') format('woff2'),
+                 url('/thumbnail-generator/fonts/Marianne-Bold.woff') format('woff');
             font-weight: 700;
           }
           @font-face {
             font-family: 'Marianne';
-            src: url('/thumbail-generator/fonts/Marianne-ExtraBold.woff2') format('woff2'),
-                 url('/thumbail-generator/fonts/Marianne-ExtraBold.woff') format('woff');
+            src: url('/thumbnail-generator/fonts/Marianne-ExtraBold.woff2') format('woff2'),
+                 url('/thumbnail-generator/fonts/Marianne-ExtraBold.woff') format('woff');
             font-weight: 800;
           }
         `}</style>
@@ -403,7 +403,7 @@ export function SvgCanvas({ state }: Props) {
           width="1000"
           height="573"
           preserveAspectRatio="none"
-          xlinkHref="/thumbail-generator/fond_thumbnail.png"
+          xlinkHref="/thumbnail-generator/fond_thumbnail.png"
         />
       </defs>
     </svg>
