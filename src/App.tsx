@@ -124,7 +124,18 @@ export function App() {
     }
   }, [activeState, mode]);
 
-  function handleDownload() {
+  const [pngData, setPngData] = useState<{
+    url: string;
+    fileName: string;
+    stateKey: string;
+  } | null>(null);
+
+  // Invalidate PNG when state changes (derived — no effect needed)
+  const stateKey = JSON.stringify(activeState) + mode;
+  const currentPng =
+    pngData?.stateKey === stateKey ? pngData : null;
+
+  function generatePng() {
     const svgEl = previewRef.current?.querySelector("svg");
     if (!svgEl) return;
 
@@ -136,7 +147,7 @@ export function App() {
     const blob = new Blob([serialized], {
       type: "image/svg+xml;charset=utf-8",
     });
-    const url = URL.createObjectURL(blob);
+    const blobUrl = URL.createObjectURL(blob);
 
     let fileName: string;
     if (isThumbnail) {
@@ -161,16 +172,10 @@ export function App() {
       canvas.height = height;
       const ctx = canvas.getContext("2d");
       ctx?.drawImage(img, 0, 0, width, height);
-      URL.revokeObjectURL(url);
-      const pngURL = canvas.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = pngURL;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+      setPngData({ url: canvas.toDataURL("image/png"), fileName, stateKey });
     };
-    img.src = url;
+    img.src = blobUrl;
   }
 
   return (
@@ -316,12 +321,32 @@ export function App() {
               <MediaPreviewCanvas state={mpState} onLogoMeasured={setLogoRect} />
             )}
           </div>
-          <Button size="lg" onClick={handleDownload}>
-            Télécharger en PNG
-            <span className="ml-1.5 text-xs opacity-70">
-              ({mode === "thumbnail" ? "1280×720" : "512×269"})
-            </span>
-          </Button>
+          <div className="flex flex-col items-center gap-2">
+            <Button size="lg" onClick={generatePng}>
+              Générer le PNG
+              <span className="ml-1.5 text-xs opacity-70">
+                ({mode === "thumbnail" ? "1280×720" : "512×269"})
+              </span>
+            </Button>
+            {currentPng && (
+              <div className="flex flex-col items-center gap-2 rounded-lg border p-3">
+                <img
+                  src={currentPng.url}
+                  alt="Aperçu PNG"
+                  className="max-w-64 rounded border"
+                  width={mode === "thumbnail" ? 1280 : 512}
+                  height={mode === "thumbnail" ? 720 : 269}
+                />
+                <a
+                  href={currentPng.url}
+                  download={currentPng.fileName}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  Télécharger {currentPng.fileName}
+                </a>
+              </div>
+            )}
+          </div>
           <div className="w-full">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-base font-semibold">Code SVG</h2>
