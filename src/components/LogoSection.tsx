@@ -1,8 +1,9 @@
 import type { ExtraLogoValues } from "@/data/presets";
+import type { LogoRect } from "@/hooks/useMediaPreviewState";
 import type { ExtraLogo, ThumbnailState } from "@/hooks/useThumbnailState";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ExtraLogoCard } from "@/components/ExtraLogoCard";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,11 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowDown, ArrowUp, Trash2, Upload } from "lucide-react";
+import { AlignEndHorizontal, Upload } from "lucide-react";
 import { useRef } from "react";
 
 interface Props {
   state: ThumbnailState;
+  logoRect: LogoRect | null;
   onLogoSettingsChange: (
     patch: Partial<Pick<ThumbnailState, "showMainLogo" | "extraMode" | "logosY" | "logosGap">>,
   ) => void;
@@ -28,6 +30,7 @@ interface Props {
 
 export function LogoSection({
   state,
+  logoRect,
   onLogoSettingsChange,
   onAddExtras,
   onUpdateExtra,
@@ -39,19 +42,34 @@ export function LogoSection({
 
   async function handleFilePick(e: React.ChangeEvent<HTMLInputElement>) {
     const files = [...(e.target.files ?? [])].filter(
-      (f) => f.type === "image/svg+xml" || f.name.toLowerCase().endsWith(".svg"),
+      (f) =>
+        f.type === "image/svg+xml" ||
+        f.type.startsWith("image/") ||
+        f.name.toLowerCase().endsWith(".svg"),
     );
     if (!files.length) return;
 
     const items = await Promise.all(
-      files.map(async (file) => ({
-        name: file.name,
-        svgText: await file.text(),
-        w: 120,
-        h: 120,
-        xPct: 50,
-        yPct: 22,
-      })),
+      files.map(async (file) => {
+        const isSvg =
+          file.type === "image/svg+xml" ||
+          file.name.toLowerCase().endsWith(".svg");
+        const svgText = isSvg
+          ? await file.text()
+          : await new Promise<string>((resolve) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.readAsDataURL(file);
+            });
+        return {
+          name: file.name,
+          svgText,
+          w: 120,
+          h: 120,
+          xPct: 50,
+          yPct: 22,
+        };
+      }),
     );
     onAddExtras(items);
     e.target.value = "";
@@ -124,12 +142,12 @@ export function LogoSection({
         )}
       </div>
 
-      {/* Import SVG */}
+      {/* Import SVG / images */}
       <div>
         <input
           ref={fileInputRef}
           type="file"
-          accept=".svg"
+          accept=".svg,image/*"
           multiple
           className="hidden"
           onChange={handleFilePick}
@@ -140,10 +158,31 @@ export function LogoSection({
           size="sm"
           onClick={() => fileInputRef.current?.click()}
         >
-          <Upload className="w-4 h-4 mr-2" />
-          Importer des SVG
+          <Upload className="w-4 h-4 mr-2" aria-hidden="true" />
+          Importer SVG / images
         </Button>
       </div>
+
+      {extraMode === "absolute" && logoRect && extras.length > 0 && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const gap = logosGap;
+            let cursorX = logoRect.x + logoRect.width + gap;
+            const centerY = logoRect.y + logoRect.height / 2;
+            extras.forEach((extra) => {
+              const xPct = ((cursorX + extra.w / 2) / 1280) * 100;
+              const yPct = (centerY / 720) * 100;
+              onUpdateExtra(extra.id, { xPct, yPct });
+              cursorX += extra.w + gap;
+            });
+          }}
+        >
+          <AlignEndHorizontal className="w-4 h-4 mr-1.5" aria-hidden="true" />
+          Aligner à droite du logo
+        </Button>
+      )}
 
       {/* Liste des logos importés */}
       {extras.length > 0 && (
@@ -169,134 +208,9 @@ export function LogoSection({
         complet est centré).
         <br />• En <b>absolu</b>, chaque logo utilise <b>x%</b> / <b>y%</b> (centré sur ce
         point). Les SVG sont mis à l'échelle (ratio conservé) pour tenir dans la case.
+        <br />• Formats acceptés : SVG, PNG, JPG.
       </p>
     </div>
   );
 }
 
-interface ExtraLogoCardProps {
-  extra: ExtraLogo;
-  extraMode: "row" | "absolute";
-  isFirst: boolean;
-  isLast: boolean;
-  onUpdate: (patch: Partial<Omit<ExtraLogo, "id">>) => void;
-  onRemove: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-}
-
-function ExtraLogoCard({
-  extra,
-  extraMode,
-  isFirst,
-  isLast,
-  onUpdate,
-  onRemove,
-  onMoveUp,
-  onMoveDown,
-}: ExtraLogoCardProps) {
-  const id = extra.id;
-  return (
-    <Card>
-      <CardContent className="pt-2 pb-2 flex flex-wrap gap-x-3 gap-y-2 items-end">
-        {/* Nom du fichier */}
-        <span
-          className="text-sm font-medium self-end w-full truncate"
-          title={extra.name}
-        >
-          {extra.name}
-        </span>
-
-        {/* Dimensions */}
-        <div className="flex gap-2 items-end">
-          <div className="flex flex-col gap-1">
-            <Label htmlFor={`${id}-w`} className="text-xs">Larg.</Label>
-            <Input
-              id={`${id}-w`}
-              className="w-16 h-7 text-xs"
-              type="number"
-              value={extra.w}
-              step={1}
-              onChange={(e) => onUpdate({ w: Math.max(1, Number(e.target.value) || 1) })}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor={`${id}-h`} className="text-xs">Haut.</Label>
-            <Input
-              id={`${id}-h`}
-              className="w-16 h-7 text-xs"
-              type="number"
-              value={extra.h}
-              step={1}
-              onChange={(e) => onUpdate({ h: Math.max(1, Number(e.target.value) || 1) })}
-            />
-          </div>
-        </div>
-
-        {/* Position absolue */}
-        {extraMode === "absolute" && (
-          <div className="flex gap-2 items-end">
-            <div className="flex flex-col gap-1">
-              <Label htmlFor={`${id}-x`} className="text-xs">X%</Label>
-              <Input
-                id={`${id}-x`}
-                className="w-16 h-7 text-xs"
-                type="number"
-                value={extra.xPct}
-                step={0.1}
-                onChange={(e) => onUpdate({ xPct: Number(e.target.value) })}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor={`${id}-y`} className="text-xs">Y%</Label>
-              <Input
-                id={`${id}-y`}
-                className="w-16 h-7 text-xs"
-                type="number"
-                value={extra.yPct}
-                step={0.1}
-                onChange={(e) => onUpdate({ yPct: Number(e.target.value) })}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Contrôles ordre + suppression */}
-        <div className="flex gap-1 items-center ml-auto">
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7"
-            disabled={isFirst}
-            onClick={onMoveUp}
-            title="Monter"
-          >
-            <ArrowUp className="w-3.5 h-3.5" />
-          </Button>
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7"
-            disabled={isLast}
-            onClick={onMoveDown}
-            title="Descendre"
-          >
-            <ArrowDown className="w-3.5 h-3.5" />
-          </Button>
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={onRemove}
-            title="Supprimer"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}

@@ -1,43 +1,27 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import type { LogoRect } from "@/hooks/useMediaPreviewState";
 import type { ThumbnailState } from "@/hooks/useThumbnailState";
+import { useSvgCache } from "@/hooks/useSvgCache";
 import { formatDateFR } from "@/lib/dateUtils";
-import { extractSvgInner } from "@/lib/svgUtils";
+import { buildScaledGroup, MARIANNE_FONT_FACE_CSS } from "@/lib/svgUtils";
 
 const SVG_W = 1280;
 const SVG_H = 720;
 
 interface Props {
   state: ThumbnailState;
+  onLogoMeasured?: (rect: LogoRect | null) => void;
 }
 
-export function SvgCanvas({ state }: Props) {
+export function ThumbnailCanvas({ state, onLogoMeasured }: Props) {
   const { title, subtitle, date, showMainLogo, extraMode, logosY, logosGap, extras } = state;
 
   const mainLogoRef = useRef<SVGGElement>(null);
   const extrasHostRef = useRef<SVGGElement>(null);
+  const lastLogoRectRef = useRef<string>("");
 
   // Cache des SVGs chargés depuis les URLs publiques (presets avec src)
-  const [svgCache, setSvgCache] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    const toFetch = extras.filter((e) => e.srcUrl && !(e.srcUrl in svgCache));
-    if (!toFetch.length) return;
-    let cancelled = false;
-    Promise.all(
-      toFetch.map(async (e) => {
-        const res = await fetch(`${import.meta.env.BASE_URL}${e.srcUrl!.replace(/^\//, "")}`);
-        const text = await res.text();
-        return [e.srcUrl!, extractSvgInner(text)] as const;
-      }),
-    )
-      .then((entries) => {
-        if (!cancelled) setSvgCache((prev: Record<string, string>) => ({ ...prev, ...Object.fromEntries(entries) }));
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [extras, svgCache]);
+  const svgCache = useSvgCache(extras);
 
   const formattedDate = formatDateFR(date.dateStr);
 
@@ -55,46 +39,30 @@ export function SvgCanvas({ state }: Props) {
     while (safeHost.firstChild) safeHost.removeChild(safeHost.firstChild);
     safeHost.removeAttribute("transform");
 
-    const svgNS = "http://www.w3.org/2000/svg";
-
-    function buildScaledGroup(
-      svgText: string,
-      slotW: number,
-      slotH: number,
-    ): { g: SVGGElement; s: number; tx0: number; ty0: number; realW: number; realH: number } {
-      const g = document.createElementNS(svgNS, "g") as SVGGElement;
-      g.innerHTML = svgText;
-      g.setAttribute("opacity", "0");
-      safeHost.appendChild(g);
-
-      let bbox: DOMRect;
-      try {
-        bbox = g.getBBox();
-      } catch {
-        bbox = new DOMRect(0, 0, slotW, slotH);
+    if (extraMode === "absolute") {
+      let measuredRect: LogoRect | null = null;
+      if (showMainLogo) {
+        try {
+          const bbox = mainLogoEl.getBBox();
+          measuredRect = { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
+        } catch { /* */ }
+      }
+      const key = measuredRect
+        ? `${measuredRect.x},${measuredRect.y},${measuredRect.width},${measuredRect.height}`
+        : "";
+      if (key !== lastLogoRectRef.current) {
+        lastLogoRectRef.current = key;
+        onLogoMeasured?.(measuredRect);
       }
 
-      const sx = bbox.width ? slotW / bbox.width : 1;
-      const sy = bbox.height ? slotH / bbox.height : 1;
-      const s = Math.min(sx, sy);
-      const realW = bbox.width * s;
-      const realH = bbox.height * s;
-      const tx0 = -bbox.x * s;
-      const ty0 = -bbox.y * s;
-
-      g.setAttribute("opacity", "1");
-      return { g, s, tx0, ty0, realW, realH };
-    }
-
-    if (extraMode === "absolute") {
       extras.forEach((item) => {
         const svgContent = (item.srcUrl ? svgCache[item.srcUrl] : undefined) ?? item.svgText;
-        const { g, s, tx0, ty0, realW, realH } = buildScaledGroup(svgContent, item.w, item.h);
+        const { el, s, tx0, ty0, realW, realH } = buildScaledGroup(safeHost, svgContent, item.w, item.h);
         const cx = (item.xPct / 100) * SVG_W;
         const cy = (item.yPct / 100) * SVG_H;
         const x = cx - realW / 2;
         const y = cy - realH / 2;
-        g.setAttribute("transform", `translate(${x + tx0}, ${y + ty0}) scale(${s})`);
+        el.setAttribute("transform", `translate(${x + tx0}, ${y + ty0}) scale(${s})`);
       });
       mainLogoEl.removeAttribute("transform");
     } else {
@@ -125,12 +93,12 @@ export function SvgCanvas({ state }: Props) {
 
       extras.forEach((item) => {
         const svgContent = (item.srcUrl ? svgCache[item.srcUrl] : undefined) ?? item.svgText;
-        const { g, s, tx0, ty0, realW, realH } = buildScaledGroup(svgContent, item.w, item.h);
+        const { el, s, tx0, ty0, realW, realH } = buildScaledGroup(safeHost, svgContent, item.w, item.h);
         const x = cursorX;
         const y = rowYpx - item.h / 2;
         const padX = (item.w - realW) / 2;
         const padY = (item.h - realH) / 2;
-        g.setAttribute("transform", `translate(${x + padX + tx0}, ${y + padY + ty0}) scale(${s})`);
+        el.setAttribute("transform", `translate(${x + padX + tx0}, ${y + padY + ty0}) scale(${s})`);
         cursorX += item.w + logosGap;
       });
     }
@@ -147,38 +115,7 @@ export function SvgCanvas({ state }: Props) {
       style={{ width: "100%", height: "auto" }}
     >
       <defs>
-        <style>{`
-          @font-face {
-            font-family: 'Marianne';
-            src: url('/thumbnail-generator/fonts/Marianne-Light.woff2') format('woff2'),
-                 url('/thumbnail-generator/fonts/Marianne-Light.woff') format('woff');
-            font-weight: 300;
-          }
-          @font-face {
-            font-family: 'Marianne';
-            src: url('/thumbnail-generator/fonts/Marianne-Regular.woff2') format('woff2'),
-                 url('/thumbnail-generator/fonts/Marianne-Regular.woff') format('woff');
-            font-weight: 400;
-          }
-          @font-face {
-            font-family: 'Marianne';
-            src: url('/thumbnail-generator/fonts/Marianne-Medium.woff2') format('woff2'),
-                 url('/thumbnail-generator/fonts/Marianne-Medium.woff') format('woff');
-            font-weight: 500;
-          }
-          @font-face {
-            font-family: 'Marianne';
-            src: url('/thumbnail-generator/fonts/Marianne-Bold.woff2') format('woff2'),
-                 url('/thumbnail-generator/fonts/Marianne-Bold.woff') format('woff');
-            font-weight: 700;
-          }
-          @font-face {
-            font-family: 'Marianne';
-            src: url('/thumbnail-generator/fonts/Marianne-ExtraBold.woff2') format('woff2'),
-                 url('/thumbnail-generator/fonts/Marianne-ExtraBold.woff') format('woff');
-            font-weight: 800;
-          }
-        `}</style>
+        <style>{MARIANNE_FONT_FACE_CSS}</style>
       </defs>
       <g clipPath="url(#clip0_197_2)">
         <rect width="1280" height="720" fill="#F9F7F8" />

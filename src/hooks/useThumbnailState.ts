@@ -174,7 +174,7 @@ export function useThumbnailState() {
         ...items.map((e) => ({
           id: uid(),
           name: e.name,
-          svgText: e.src ? "" : extractSvgInner(e.svgText),
+          svgText: e.src ? "" : e.svgText.startsWith("data:") ? e.svgText : extractSvgInner(e.svgText),
           srcUrl: e.src,
           w: Math.max(1, e.w ?? 120),
           h: Math.max(1, e.h ?? 120),
