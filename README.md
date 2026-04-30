@@ -48,7 +48,7 @@ Outil interne de génération de thumbnails SVG/PNG (1280×720 px) et de media p
 
 ```bash
 pnpm install
-pnpm dev        # → http://localhost:5173/thumbnail-generator/
+pnpm dev        # → http://localhost:5173/
 ```
 
 ```bash
@@ -61,8 +61,6 @@ pnpm typecheck  # tsc --noEmit seul
 ## Déploiement
 
 Déployé automatiquement sur **GitHub Pages** à chaque push sur `main` via `.github/workflows/deploy.yml`.
-
-La `base` Vite est `/thumbnail-generator/`.
 
 ## Structure du projet
 
@@ -108,7 +106,7 @@ public/
 
 ### Polices dans le SVG
 
-Les polices Marianne sont embarquées en `@font-face` inline dans le `<defs>` du SVG (constante `MARIANNE_FONT_FACE_CSS` dans `svgUtils.ts`). Les fichiers `.woff`/`.woff2` sont servis depuis `public/fonts/` via des URLs absolues incluant la base Vite (`/thumbnail-generator/fonts/...`).
+Les polices Marianne sont embarquées en `@font-face` inline dans le `<defs>` du SVG (constante `MARIANNE_FONT_FACE_CSS` dans `svgUtils.ts`). Les fichiers `.woff`/`.woff2` sont servis depuis `public/fonts/` via des URLs absolues incluant la base Vite (`/fonts/...`).
 
 ### Export PNG
 

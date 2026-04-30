@@ -340,7 +340,7 @@ export function ThumbnailCanvas({ state, onLogoMeasured }: Props) {
           width="1000"
           height="573"
           preserveAspectRatio="none"
-          xlinkHref="/thumbnail-generator/fond_thumbnail.png"
+          xlinkHref="/fond_thumbnail.png"
         />
       </defs>
     </svg>

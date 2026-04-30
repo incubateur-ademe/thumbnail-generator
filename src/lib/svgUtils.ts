@@ -4,32 +4,32 @@ export const XLINK_NS = "http://www.w3.org/1999/xlink";
 export const MARIANNE_FONT_FACE_CSS = `
   @font-face {
     font-family: 'Marianne';
-    src: url('/thumbnail-generator/fonts/Marianne-Light.woff2') format('woff2'),
-         url('/thumbnail-generator/fonts/Marianne-Light.woff') format('woff');
+    src: url('/fonts/Marianne-Light.woff2') format('woff2'),
+         url('/fonts/Marianne-Light.woff') format('woff');
     font-weight: 300;
   }
   @font-face {
     font-family: 'Marianne';
-    src: url('/thumbnail-generator/fonts/Marianne-Regular.woff2') format('woff2'),
-         url('/thumbnail-generator/fonts/Marianne-Regular.woff') format('woff');
+    src: url('/fonts/Marianne-Regular.woff2') format('woff2'),
+         url('/fonts/Marianne-Regular.woff') format('woff');
     font-weight: 400;
   }
   @font-face {
     font-family: 'Marianne';
-    src: url('/thumbnail-generator/fonts/Marianne-Medium.woff2') format('woff2'),
-         url('/thumbnail-generator/fonts/Marianne-Medium.woff') format('woff');
+    src: url('/fonts/Marianne-Medium.woff2') format('woff2'),
+         url('/fonts/Marianne-Medium.woff') format('woff');
     font-weight: 500;
   }
   @font-face {
     font-family: 'Marianne';
-    src: url('/thumbnail-generator/fonts/Marianne-Bold.woff2') format('woff2'),
-         url('/thumbnail-generator/fonts/Marianne-Bold.woff') format('woff');
+    src: url('/fonts/Marianne-Bold.woff2') format('woff2'),
+         url('/fonts/Marianne-Bold.woff') format('woff');
     font-weight: 700;
   }
   @font-face {
     font-family: 'Marianne';
-    src: url('/thumbnail-generator/fonts/Marianne-ExtraBold.woff2') format('woff2'),
-         url('/thumbnail-generator/fonts/Marianne-ExtraBold.woff') format('woff');
+    src: url('/fonts/Marianne-ExtraBold.woff2') format('woff2'),
+         url('/fonts/Marianne-ExtraBold.woff') format('woff');
     font-weight: 800;
   }
 `;
