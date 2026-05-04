@@ -34,17 +34,12 @@ export function parseHash(hash: string): {
   const raw = hash.replace(/^#/, "");
   if (!raw) return { mode: null, preset: null };
 
-  const [modeStr, ...rest] = raw.split("&");
+  const [modeStr, queryStr] = raw.split("?");
   const mode =
     modeStr === "media-preview" || modeStr === "thumbnail" ? modeStr : null;
 
-  let preset: string | null = null;
-  for (const part of rest) {
-    if (part.startsWith("p=")) {
-      preset = decodeURIComponent(part.slice(2));
-      break;
-    }
-  }
+  const params = new URLSearchParams(queryStr || "");
+  const preset = params.get("p");
 
   return { mode, preset };
 }
@@ -55,6 +50,6 @@ export function buildHash(
   preset?: string,
 ): string {
   let hash = `#${mode}`;
-  if (preset) hash += `&p=${encodeURIComponent(preset)}`;
+  if (preset) hash += `?p=${encodeURIComponent(preset)}`;
   return hash;
 }

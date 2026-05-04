@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import type { ExtraLogoValues, Preset, PresetValues } from "@/data/presets";
+import type { ExtraLogoValues, PresetValues } from "@/data/presets";
 import { DEFAULT_PRESET_NAME, presets } from "@/data/presets";
 import { todayISO } from "@/lib/dateUtils";
 import { extractSvgInner, uid } from "@/lib/svgUtils";
@@ -139,8 +139,8 @@ const initialState = presetValuesToState({
 export function useThumbnailState() {
   const [state, setState] = useState<ThumbnailState>(initialState);
 
-  const applyPreset = useCallback((preset: Preset) => {
-    setState(presetValuesToState(preset.values));
+  const applyPresetValues = useCallback((values: PresetValues) => {
+    setState(presetValuesToState(values));
   }, []);
 
   const resetPreset = useCallback(() => {
@@ -217,7 +217,7 @@ export function useThumbnailState() {
     state,
     presets,
     actions: {
-      applyPreset,
+      applyPresetValues,
       resetPreset,
       setTitle,
       setSubtitle,

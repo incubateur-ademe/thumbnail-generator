@@ -11,6 +11,8 @@ import { ThumbnailCanvas } from "./components/ThumbnailCanvas";
 import { TextElementSection } from "./components/TextElementSection";
 import { useMediaPreviewState } from "./hooks/useMediaPreviewState";
 import { useThumbnailState } from "./hooks/useThumbnailState";
+import type { PresetValues } from "./data/presets";
+
 import {
   buildHash,
   decodePreset,
@@ -36,8 +38,7 @@ export function App() {
           if (hashMode === "media-preview") {
             mpActions.patch(data as Partial<typeof mpState>);
           } else {
-            const preset = presets.find((p) => p.name === (data as { name?: string }).name);
-            if (preset) thumbActions.applyPreset(preset);
+            thumbActions.applyPresetValues(data as unknown as PresetValues);
           }
         }
       }
@@ -239,7 +240,7 @@ export function App() {
             <>
               <PresetSection
                 presets={presets}
-                onApply={thumbActions.applyPreset}
+                onApply={thumbActions.applyPresetValues}
                 onReset={thumbActions.resetPreset}
                 buildPresetValues={thumbActions.buildPresetValues}
               />

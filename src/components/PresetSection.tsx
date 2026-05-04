@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { Preset } from "@/data/presets";
+import type { Preset, PresetValues } from "@/data/presets";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface Props {
   presets: Preset[];
-  onApply: (preset: Preset) => void;
+  onApply: (values: PresetValues) => void;
   onReset: () => void;
   buildPresetValues: () => object;
 }
@@ -27,7 +27,7 @@ export function PresetSection({ presets, onApply, onReset, buildPresetValues }: 
 
   function handleApply() {
     const preset = presets.find((p) => p.name === selectedName);
-    if (preset) onApply(preset);
+    if (preset) onApply(preset.values);
   }
 
   function handleGenerate() {
