@@ -178,4 +178,45 @@ export const presets: Preset[] = [
       ],
     },
   },
+  {
+    name: "QFDMOD",
+    values: {
+      showTitle: true,
+      title: "<TITRE>",
+      titleSize: "128",
+      titleColor: "#1e1e1e",
+      titleSpacing: "0",
+      titleX: "50",
+      titleY: "50",
+      showSubtitle: true,
+      subtitle: "Présentation",
+      subtitleSize: "64",
+      subtitleColor: "#4950fb",
+      subtitleSpacing: "0",
+      subtitleX: "50",
+      subtitleY: "67",
+      showDate: true,
+      date: "2026-01-13",
+      dateSize: "40",
+      dateColor: "#1e1e1e",
+      dateSpacing: "0",
+      dateX: "50",
+      dateY: "85.5",
+      showMainLogo: false,
+      extraMode: "row",
+      logosY: "22",
+      logosGap: "16",
+      extras: [
+        {
+          name: "logo QFDMOD.svg",
+          src: "/presets/img/qfdmod.svg",
+          svgText: "",
+          w: 1200,
+          h: 120,
+          xPct: 50,
+          yPct: 22
+        }
+      ]
+    }
+  }
 ];
