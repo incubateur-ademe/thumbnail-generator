@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import type { Preset, PresetValues } from "@/data/presets";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { X } from "lucide-react";
+import { TriangleAlert, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -12,22 +12,46 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-interface Props {
-  presets: Preset[];
-  onApply: (values: PresetValues) => void;
-  onReset: () => void;
-  buildPresetValues: () => object;
+function presetScalarsMatch(a: PresetValues, b: PresetValues): boolean {
+  return JSON.stringify({ ...a, extras: null }) === JSON.stringify({ ...b, extras: null });
 }
 
-export function PresetSection({ presets, onApply, onReset, buildPresetValues }: Props) {
-  const [selectedName, setSelectedName] = useState(presets[0]?.name ?? "");
+interface Props {
+  presets: Preset[];
+  initialPresetName?: string | null;
+  onApply: (values: PresetValues) => void;
+  onReset: () => void;
+  buildPresetValues: () => PresetValues;
+}
+
+const NO_PRESET = "__none__";
+
+export function PresetSection({ presets, initialPresetName, onApply, onReset, buildPresetValues }: Props) {
+  const defaultName = initialPresetName ?? NO_PRESET;
+  const [selectedName, setSelectedName] = useState(defaultName);
+  const [appliedName, setAppliedName] = useState(defaultName);
   const [generatedPreset, setGeneratedPreset] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [copied, setCopied] = useState(false);
 
+  const hasSelection = selectedName !== NO_PRESET;
+  const needsApply = hasSelection && selectedName !== appliedName;
+  const appliedPreset = presets.find((p) => p.name === appliedName);
+  const isModified = !needsApply && appliedPreset != null && !presetScalarsMatch(appliedPreset.values, buildPresetValues());
+
   function handleApply() {
     const preset = presets.find((p) => p.name === selectedName);
-    if (preset) onApply(preset.values);
+    if (preset) {
+      onApply(preset.values);
+      setAppliedName(selectedName);
+    }
+  }
+
+  function handleReset() {
+    onReset();
+    const defaultName = presets[0]?.name ?? "";
+    setSelectedName(defaultName);
+    setAppliedName(defaultName);
   }
 
   function handleGenerate() {
@@ -57,24 +81,39 @@ export function PresetSection({ presets, onApply, onReset, buildPresetValues }: 
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
           <Label htmlFor="preset-select">Preset</Label>
-          <Select value={selectedName} onValueChange={setSelectedName}>
-            <SelectTrigger id="preset-select">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {presets.map((p) => (
-                <SelectItem key={p.name} value={p.name}>
-                  {p.name}
+          <div className="flex items-center gap-2">
+            <Select value={selectedName} onValueChange={setSelectedName}>
+              <SelectTrigger id="preset-select" className={isModified ? "italic" : ""}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_PRESET} disabled className="italic text-muted-foreground">
+                  Pas de preset
                 </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                {presets.map((p) => (
+                  <SelectItem key={p.name} value={p.name}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {isModified && (
+              <span className="flex items-center gap-1 text-xs text-amber-500 shrink-0">
+                <TriangleAlert className="size-3.5" />
+                Modifié
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex gap-2">
-          <Button type="button" onClick={handleApply}>
+          <Button
+            type="button"
+            onClick={handleApply}
+            className={needsApply ? "animate-[glow-breathe_3s_ease-in-out_infinite]" : ""}
+          >
             Appliquer
           </Button>
-          <Button type="button" variant="outline" onClick={onReset}>
+          <Button type="button" variant="outline" onClick={handleReset}>
             Reset
           </Button>
           <Button type="button" variant="outline" onClick={handleGenerate}>

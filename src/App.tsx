@@ -31,7 +31,6 @@ export function App() {
   const [mode, setMode] = useState<AppMode>(() => {
     const { mode: hashMode, preset: presetStr } = parseHash(window.location.hash);
     if (hashMode) {
-      // Apply preset from URL if present
       if (presetStr) {
         const data = decodePreset(presetStr);
         if (data) {
@@ -45,6 +44,21 @@ export function App() {
       return hashMode;
     }
     return (localStorage.getItem("app-mode") as AppMode) || "thumbnail";
+  });
+
+  const [urlPresetName] = useState<string | null>(() => {
+    const { mode: hashMode, preset: presetStr } = parseHash(window.location.hash);
+    if (hashMode === "thumbnail" && presetStr) {
+      const data = decodePreset(presetStr) as unknown as PresetValues | null;
+      if (data) {
+        const match = presets.find((p) =>
+          JSON.stringify({ ...p.values, extras: null, date: null }) ===
+          JSON.stringify({ ...data, extras: null, date: null }),
+        );
+        return match?.name ?? null;
+      }
+    }
+    return null;
   });
 
   // Sync mode + state → hash + localStorage (debounced)
@@ -234,12 +248,13 @@ export function App() {
       <div className="flex gap-6 p-6 flex-1 items-start">
         <aside
           style={{ width: asideWidth }}
-          className="shrink-0 flex flex-col gap-6 overflow-y-auto max-h-[calc(100vh-80px)] sticky top-[80px]"
+          className="shrink-0 flex flex-col gap-6 overflow-y-auto -mx-3 px-3 max-h-[calc(100vh-80px)] sticky top-[80px]"
         >
           {mode === "thumbnail" ? (
             <>
               <PresetSection
                 presets={presets}
+                initialPresetName={urlPresetName}
                 onApply={thumbActions.applyPresetValues}
                 onReset={thumbActions.resetPreset}
                 buildPresetValues={thumbActions.buildPresetValues}

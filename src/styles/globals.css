@@ -85,6 +85,11 @@
   --chart-5: oklch(0.645 0.246 16.439);
 }
 
+@keyframes glow-breathe {
+  0%, 100% { box-shadow: 0 0 2px 0 color-mix(in oklch, var(--primary), transparent 70%); }
+  50% { box-shadow: 0 0 8px 2px color-mix(in oklch, var(--primary), transparent 50%); }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
